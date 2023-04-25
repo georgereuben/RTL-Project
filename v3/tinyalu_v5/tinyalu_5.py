@@ -10,16 +10,23 @@ from tinyalu_utils import Ops, alu_prediction, logger, get_int, TinyAluBfm
 import pyuvm
 from pyuvm import *
 
-class BaseTester():                         #base class for forgiveness dynamic typing
 
-    async def execute(self):
+class BaseTester(uvm_component):                         #base class for forgiveness dynamic typing
+
+    def start_of_simulation_phase(self):
+        TinyAluBfm().start_tasks()
+
+    async def run_phase(self):
+        self.raise_objection()
         self.bfm = TinyAluBfm()
         ops = list(Ops)
         for op in ops:
             aa, bb = self.get_operands()
             await self.bfm.send_op(aa, bb, op)
+        #send two dummy operations to allow last real operation to complete
         await self.bfm.send_op(0,0,1)
         await self.bfm.send_op(0,0,1)
+        self.drop_objection()
 
 class RandomTester(BaseTester):
     
@@ -34,40 +41,9 @@ class MaxTester(BaseTester):
         aa = 0xff
         bb = 0xff
         return aa, bb
+
+class ScoreBoard(uvm_component):
     
-class BaseTest(uvm_test):
-
-    async def run_phase(self):
-        self.raise_objection()
-        bfm = TinyAluBfm()
-        scoreboard = ScoreBoard()
-        await bfm.reset()
-        bfm.start_tasks()
-        scoreboard.start_tasks()
-        await self.tester.execute()
-        passed = scoreboard.check_results()
-        assert passed
-        self.drop_objection()
-
-@pyuvm.test()
-class RandomTest(BaseTest):
-    """Run with random operations"""
-    def build_phase(self):
-        self.tester = RandomTester()
-
-@pyuvm.test()
-class MaxTest(BaseTest):
-    """Run with max operations"""
-    def build_phase(self):
-        self.tester = MaxTester()
-
-class ScoreBoard():
-    def __init__(self):
-        self.bfm = TinyAluBfm()
-        self.cmds = []
-        self.results = []
-        self.cvg = set()
-
     async def get_cmd(self):
         while True:
             cmd = await self.bfm.get_cmd()
@@ -77,30 +53,63 @@ class ScoreBoard():
         while True:
             result = await self.bfm.get_result()
             self.results.append(result)
-    
-    def start_tasks(self):
+        
+    def start_of_simulation_phase(self):
+        self.bfm = TinyAluBfm()
+        self.cmds = []
+        self.results = []
+        self.cvg = set()
         cocotb.start_soon(self.get_cmd())
         cocotb.start_soon(self.get_result())
-
-    def check_results(self):
+    
+    def check_phase(self):
         passed = True
         for cmd in self.cmds:
             aa, bb, op_int = cmd
             op = Ops(op_int)
             self.cvg.add(op)
             actual = self.results.pop(0)
-            predictions = alu_prediction(aa, bb, op)
-            if actual == predictions:
-                logger.debug(f"CMD {op.name} PASSED")
+            prediction = alu_prediction(aa, bb, op)
+            if actual == prediction:
+                self.logger.debug(f"PASS: {aa} {op} {bb} = {prediction}")
             else:
-                logger.error(f"CMD {op.name} FAILED: {aa} {op} {bb} = {actual}, but predicted {predictions}")
-                passed = False  
+                self.logger.error(f"FAIL: {aa} {op} {bb} = {prediction} (got {actual})")
+                passed = False
         if len(set(Ops) - self.cvg) > 0:
-            logger.error(f"FUNCTIONAL COVERAGE FAILED: Did not test all ops, missing {set(Ops) - self.cvg}")
+            self.logger.error(f"FUNCTIONAL COVERAGE FAILED: {set(Ops) - self.cvg} were not tested")
             passed = False
         else:
-            logger.debug(f"FUNCTIONAL COVERAGE PASSED: Tested all operations")
-        return passed
+            self.logger.debug(f"FUNCTIONAL COVERAGE PASSED: All ops were tested")
+        assert passed
+
+class BaseEnv(uvm_env):
+    
+    def build_phase(self):
+        self.scoreboard = ScoreBoard("scoreboard", self)
+
+class RandomEnv(BaseEnv):
+    """Generate random operands"""
+    def build_phase(self):
+        super().build_phase()
+        self.tester = RandomTester("tester", self)
+    
+class MaxEnv(BaseEnv):
+    """Generate max operands"""
+    def build_phase(self):
+        super().build_phase()
+        self.tester = MaxTester("tester", self)
+
+@pyuvm.test()
+class RandomTest(uvm_test):
+    """Run with random operations"""
+    def build_phase(self):
+        self.env = RandomEnv("env", self)
+
+@pyuvm.test()
+class MaxTest(uvm_test):
+    """Run with max operations"""
+    def build_phase(self):
+        self.env = MaxEnv("env", self)
 
 import enum
 class Ops (enum. IntEnum):
