@@ -87,7 +87,6 @@ async def alu_test(dut):
                         
             if(result == pr):
                 logger.debug(f"PASSED: {aa:2x} {op.name} {bb:2x} = {result:04x}")
-                passed = True
             else:
                 logger.error(f"FAILED: {aa:2x} {op.name} {bb:2x} = {result:04x} (expected {pr:04x})")
                 passed = False

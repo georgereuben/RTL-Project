@@ -37,6 +37,8 @@ async def alu_test(_):
     bfm = TinyAluBfm()
     logger.info("RESETTING DUT")
     await bfm.reset()
+    logger.info("STRATING BUS FUNCTIONAL MODEL")
+    bfm.start_tasks()
     cvg = set()
 
     ops = list(Ops)
@@ -46,18 +48,17 @@ async def alu_test(_):
         await bfm.send_op(aa, bb, op)
 
         seen_cmd = await bfm.get_cmd()
-        seen_op = await bfm.get_op()
+        seen_op = Ops(seen_cmd[2])
         cvg.add(seen_op)
 
         result = await bfm.get_result()
         pr = alu_prediction(aa, bb, op)
 
-        if result == pr:
-            logger.debug(f"CMD {op.name} PASSED")
-            passed = True
-        else:
-            logger.error(f"CMD {op.name} FAILED")
-            passed = False
+    if result == pr:
+        logger.debug(f"CMD {op.name} PASSED")
+    else:
+        logger.error(f"CMD {op.name} FAILED")
+        passed = False
         
     assert passed, "Test Failed"
     
