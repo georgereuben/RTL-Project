@@ -134,7 +134,7 @@ class TinyAluBfm(metaclass=utility_classes.Singleton):
                 self.result_mon_queue.put_nowait(result)
             prev_done = done
 
-    def start_bfm(self):
+    def start_tasks(self):
         cocotb.start_soon(self.driver_bfm())
         cocotb.start_soon(self.cmd_mon_bfm())
         cocotb.start_soon(self.result_mon_bfm())

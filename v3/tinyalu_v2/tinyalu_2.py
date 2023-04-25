@@ -37,11 +37,12 @@ async def alu_test(_):
     bfm = TinyAluBfm()
     logger.info("RESETTING DUT")
     await bfm.reset()
-    logger.info("STRATING BUS FUNCTIONAL MODEL")
+    logger.info("STARTING BUS FUNCTIONAL MODEL")
     bfm.start_tasks()
     cvg = set()
 
     ops = list(Ops)
+    logger.info(f"num_ops = {len(ops)}")
     for op in ops:
         aa = random.randint(0, 255)
         bb = random.randint(0, 255)
@@ -54,12 +55,18 @@ async def alu_test(_):
         result = await bfm.get_result()
         pr = alu_prediction(aa, bb, op)
 
-    if result == pr:
-        logger.debug(f"CMD {op.name} PASSED")
-    else:
-        logger.error(f"CMD {op.name} FAILED")
-        passed = False
+        if result == pr:
+            logger.debug(f"CMD {op.name} PASSED")
+        else:
+            logger.error(f"CMD {op.name} FAILED")
+            passed = False
         
+    if len(set(Ops) - cvg) > 0:
+        logger.error(f"FUNCTIONAL COVERAGE FAILED: Did not test all ops, missing {set(Ops) - cvg}")
+        passed = False
+    else:
+        logger.debug("FUNCTIONAL COVERAGE PASSED")
+
     assert passed, "Test Failed"
     
     

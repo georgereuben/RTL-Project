@@ -63,15 +63,27 @@ class ScoreBoard():
             actual = self.results.pop(0)
             predictions = alu_prediction(aa, bb, op)
             if actual == predictions:
-                logger.info(f"PASSED: {aa} {op} {bb} = {actual}")
+                logger.debug(f"CMD {op.name} PASSED")
             else:
-                logger.error(f"FAILED: {aa} {op} {bb} = {actual}, but predicted {predictions}")
+                logger.error(f"CMD {op.name} FAILED: {aa} {op} {bb} = {actual}, but predicted {predictions}")
                 passed = False  
         if len(set(Ops) - self.cvg) > 0:
             logger.error(f"FUNCTIONAL COVERAGE FAILED: Did not test all ops, missing {set(Ops) - self.cvg}")
             passed = False
+        else:
+            logger.debug(f"FUNCTIONAL COVERAGE PASSED: Tested all ops")
         return passed
-
+    
+async def execute_test(tester_class):
+    bfm = TinyAluBfm()
+    scoreboard = ScoreBoard()
+    await bfm.reset()
+    bfm.start_tasks()
+    scoreboard.start_tasks()
+    tester = tester_class()
+    await tester.execute()
+    passed = scoreboard.check_results()
+    return passed
 
 import enum
 class Ops (enum. IntEnum):
@@ -92,38 +104,11 @@ def alu_prediction(A, B, op):
         return A ^ B
     elif op == Ops.MUL:
         return A * B
-    
+      
 @cocotb.test()
 async def alu_test(_):
     """Test the TinyALU"""
     logger.info("INITIALIZING TEST")
 
-    passed = True
-    bfm = TinyAluBfm()
-    logger.info("RESETTING DUT")
-    await bfm.reset()
-    cvg = set()
-
-    ops = list(Ops)
-    for op in ops:
-        aa = random.randint(0, 255)
-        bb = random.randint(0, 255)
-        await bfm.send_op(aa, bb, op)
-
-        seen_cmd = await bfm.get_cmd()
-        seen_op = await bfm.get_op()
-        cvg.add(seen_op)
-
-        result = await bfm.get_result()
-        pr = alu_prediction(aa, bb, op)
-
-        if result == pr:
-            logger.debug(f"CMD {op.name} PASSED")
-            passed = True
-        else:
-            logger.error(f"CMD {op.name} FAILED")
-            passed = False
-        
-    assert passed, "Test Failed"
-    
-    
+    passed = await execute_test(RandomTester)
+    assert passed, "Random test failed"
