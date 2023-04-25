@@ -1,6 +1,7 @@
 <testsuites name="results">
   <testsuite name="all" package="all">
-    <property name="random_seed" value="1682415407" />
-    <testcase name="no_count" classname="counter_test" file="/home/reuben/Documents/rtl_project/v3/counter/counter_test.py" lineno="23" time="0.003964662551879883" sim_time_ns="9.0" ratio_time="2270.054483131878" />
+    <property name="random_seed" value="1682420866" />
+    <testcase name="no_count" classname="counter_test" file="/home/reuben/Documents/rtl_project/v3/counter/counter_test.py" lineno="23" time="0.0015091896057128906" sim_time_ns="9.0" ratio_time="5963.465402843602" />
+    <testcase name="three_count" classname="counter_test" file="/home/reuben/Documents/rtl_project/v3/counter/counter_test.py" lineno="34" time="0.0010497570037841797" sim_time_ns="8.0" ratio_time="7620.811265046559" />
   </testsuite>
 </testsuites>

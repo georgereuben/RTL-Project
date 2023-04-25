@@ -13,19 +13,20 @@ logger.setLevel(logging.DEBUG)
 class GreenFormatter(logging.Formatter):
     GREEN = "\033[32m"
     RESET = "\033[0m"
+    YELLOW = "\033[33m"
+    ORANGE = "\033[38;5;208m"
 
     def format(self, record):
-        if record.levelno == logging.INFO:
+        if record.levelno == logging.DEBUG:
             record.msg = f"{self.GREEN}{record.msg}{self.RESET}"
+        if record.levelno == logging.WARNING:
+            record.msg = f"{self.YELLOW}{record.msg}{self.RESET}"
         return super().format(record)
 
-logger = logging.getLogger()
 handler = logging.StreamHandler()
 formatter = GreenFormatter(fmt="%(asctime)s %(levelname)s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-
-logger.info("This message will be printed in green!")
 
 @enum.unique
 class Ops(enum.IntEnum):

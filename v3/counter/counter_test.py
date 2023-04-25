@@ -30,3 +30,15 @@ async def no_count(dut):
     count = get_int(dut.count)
     logger.info(f"After 5 clock cycles, count is {count}")
     assert count == 0
+
+@cocotb.test()
+async def three_count(dut):
+    """Test that the counter counts upwards as expected"""
+    cocotb.start_soon(Clock(dut.clk, 2, units="ns").start())
+    dut.reset_n.value = 0
+    await FallingEdge(dut.clk)
+    dut.reset_n.value = 1
+    await ClockCycles(dut.clk, 3, rising=False)
+    count = get_int(dut.count)
+    logger.info(f"After 3 clock cycles, count is {count}")
+    assert count == 3
