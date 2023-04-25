@@ -65,7 +65,7 @@ class TinyAluBfm(metaclass=utility_classes.Singleton):
     def __init__(self):
         self.dut = cocotb.top
         self.driver_queue = Queue(maxsize=1)
-        self.cmd_mon_queue = Queue(maxsize=0)           #maxsize zero means infinitely large
+        self.cmd_mon_queue = Queue(maxsize=0)
         self.result_mon_queue = Queue(maxsize=0)
 
     async def send_op(self, aa, bb, op):
@@ -90,7 +90,7 @@ class TinyAluBfm(metaclass=utility_classes.Singleton):
         self.dut.reset.value = 1
         await FallingEdge(self.dut.clk)
 
-    async def cmd_driver(self):
+    async def driver_bfm(self):
         self.dut.start.value = 0
         self.dut.A.value = 0
         self.dut.B.value = 0
@@ -112,7 +112,7 @@ class TinyAluBfm(metaclass=utility_classes.Singleton):
                 if done == 1:
                     self.dut.start.value = 0
 
-    async def cmd_mon(self):
+    async def cmd_mon_bfm(self):
         prev_start = 0
         while True:
             await FallingEdge(self.dut.clk)
@@ -124,7 +124,7 @@ class TinyAluBfm(metaclass=utility_classes.Singleton):
                 self.cmd_mon_queue.put_nowait(cmd_tuple)
             prev_start = start
 
-    async def result_mon(self):
+    async def result_mon_bfm(self):
         prev_done = 0
         while True:
             await FallingEdge(self.dut.clk)
@@ -134,7 +134,7 @@ class TinyAluBfm(metaclass=utility_classes.Singleton):
                 self.result_mon_queue.put_nowait(result)
             prev_done = done
 
-    def start_tasks(self):
-        cocotb.start_soon(self.cmd_driver())
-        cocotb.start_soon(self.cmd_mon())
-        cocotb.start_soon(self.result_mon())
+    def start_bfm(self):
+        cocotb.start_soon(self.driver_bfm())
+        cocotb.start_soon(self.cmd_mon_bfm())
+        cocotb.start_soon(self.result_mon_bfm())

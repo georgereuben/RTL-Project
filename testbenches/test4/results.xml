@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1682429262" />
+    <testcase name="adder_test" classname="adder_4test" file="/home/reuben/Documents/rtl_project/testbenches/test4/adder_4test.py" lineno="11" time="0.0027413368225097656" sim_time_ns="101.0" ratio_time="36843.33831970778">
+      <failure />
+    </testcase>
+  </testsuite>
+</testsuites>

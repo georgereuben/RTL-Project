@@ -42,8 +42,7 @@ async def alu_test(dut):
     await FallingEdge(dut.clk)
     dut.reset.value = 1
     #dut resetted above
-
-    result = 0
+    
     logger.info("STARTING TEST")
     cmd_count = 1
     op_list = list(Ops)

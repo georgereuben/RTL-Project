@@ -1,20 +1,35 @@
+from cocotb.triggers import FallingEdge 
 import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, FallingEdge, Timer
-import pyuvm
-from pyuvm import *
+import random
+from pathlib import Path
+parent_path = Path("..").resolve()
+import sys
+sys.path.insert(0, str(parent_path))
+import logging
+from tinyalu_utils import Ops, alu_prediction, logger, get_int
 
-
-
-@pyuvm.test()
-class test(uvm_test):
+@cocotb.test()
+async def adder_test(dut):
+    """Test the 4-bit adder"""
+    logger.info("INITIALIZING TEST")
+    passed = 0
     
-    async def run_phase(self):
-        self.raise_objection()
-        await Timer(1000, units='ns')
-        print("Hello World!")
-        await Timer(1000, units='ns')
-        self.logger.info("Hi all! Welcome to the python Version")
-        await Timer(1000, units='ns')
+    for i in range(10):
+        aa = random.randint(0, 15)
+        bb = random.randint(0, 15)
+        dut.A.value = aa
+        dut.B.value = bb
+        await FallingEdge(dut.clk)
+        result = get_int(dut.result)
+        pr = aa + bb
+        if result == pr:
+            logger.debug(f"TEST {i} PASSED")
+            passed+=1
+        else:
+            logger.error(f"TEST {i} FAILED")
+            logger.warning(f"result = {result}, predicted = {pr}")
+    
+    logger.info(f"TEST PASSED {passed} TIMES")
+    assert passed >= 5
+    
 
-uvm_root().run_test("test")    
