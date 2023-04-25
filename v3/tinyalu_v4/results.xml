@@ -1,0 +1,7 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1682435227" />
+    <testcase name="RandomTest" classname="tinyalu_4" file="/home/reuben/.local/lib/python3.10/site-packages/pyuvm/extension_classes.py" lineno="52" time="0.0032720565795898438" sim_time_ns="151.0" ratio_time="46148.34625473623" />
+    <testcase name="MaxTest" classname="tinyalu_4" file="/home/reuben/.local/lib/python3.10/site-packages/pyuvm/extension_classes.py" lineno="58" time="0.004862308502197266" sim_time_ns="150.0" ratio_time="30849.543983524567" />
+  </testsuite>
+</testsuites>
