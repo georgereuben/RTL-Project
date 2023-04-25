@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1682415407" />
+    <testcase name="no_count" classname="counter_test" file="/home/reuben/Documents/rtl_project/v3/counter/counter_test.py" lineno="23" time="0.003964662551879883" sim_time_ns="9.0" ratio_time="2270.054483131878" />
+  </testsuite>
+</testsuites>

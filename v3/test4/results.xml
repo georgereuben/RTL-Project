@@ -1,0 +1,8 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1682415203" />
+    <testcase name="test" classname="adder_4test" file="/home/reuben/.local/lib/python3.10/site-packages/pyuvm/extension_classes.py" lineno="9" time="0.0011141300201416016" sim_time_ns="3000.0" ratio_time="2692683.928953563">
+      <failure />
+    </testcase>
+  </testsuite>
+</testsuites>
